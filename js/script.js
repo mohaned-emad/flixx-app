@@ -12,6 +12,8 @@ const highlightActiveLink = () => {
     });
 }
 
+
+
 const fetchAPIData = async(url) => {
     const API_KEY = '1ba70249e113b69ca503011300acd9cb';
     showSpinner();
@@ -185,6 +187,59 @@ const getPopularMovies = async() => {
     });
 }
 
+const getTopRatedMovies = async() => {
+    const { results } = await fetchAPIData('https://api.themoviedb.org/3/movie/top_rated');
+    const moviesContainer = document.querySelector('#top-rated-movies');
+    results.forEach(movie => {
+        const movieCard = document.createElement('div');
+        movieCard.innerHTML = `
+        <div class="card">
+            <a href="movie-details.html?id=${movie.id}">
+                <img
+                src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                class="card-img-top"
+                alt="Movie Title"
+            />
+            </a>
+            <div class="card-body">
+                <h5 class="card-title">${movie.title}</h5>
+                <h5 class="swiper-rating">
+                <i class="fas fa-star text-secondary"></i> ${movie.vote_average.toFixed(1)} / 10
+                </h5>
+            </div>
+        </div>
+        `;
+        moviesContainer.appendChild(movieCard);
+
+    });
+}
+
+const getTopRatedShows = async () => {
+    const { results } = await fetchAPIData('https://api.themoviedb.org/3/tv/top_rated');
+    const showsContainer = document.querySelector('#top-rated-shows');
+    results.forEach(show => {
+        const showCard = document.createElement('div');
+        showCard.innerHTML = `
+        <div class="card">
+        <a href="tv-details.html?id=${show.id}">
+            <img
+                src="https://image.tmdb.org/t/p/w500${show.poster_path}"
+                class="card-img-top"
+                alt="Show Title"
+            />
+        </a>
+        <div class="card-body">
+            <h5 class="card-title">${show.name}</h5>
+            <h5 class="swiper-rating">
+            <i class="fas fa-star text-secondary"></i> ${show.vote_average.toFixed(1)} / 10
+            </h5>
+        </div>
+        </div>
+        `;
+        showsContainer.appendChild(showCard);
+    });
+}
+
 const swipeMovies = async() => {
     const {results} = await fetchAPIData('https://api.themoviedb.org/3/movie/now_playing');     
     
@@ -286,18 +341,58 @@ const addComas = (number) => {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+const switchMovies = (e) => {
+    console.log(e.target);
+    if(e.target.getAttribute('id') == 'popular' || e.target.getAttribute('id') == 'top-rated') {
+        if(e.target.getAttribute('id') == 'popular') {
+            e.target.classList.add('active');
+            document.querySelector('#top-rated').classList.remove('active');
+            document.querySelector('#popular-movies').style.display = 'grid';
+            document.querySelector('#top-rated-movies').style.display = 'none';
+        } else {
+            e.target.classList.add('active');
+            document.querySelector('#popular').classList.remove('active');
+            document.querySelector('#popular-movies').style.display = 'none';
+            document.querySelector('#top-rated-movies').style.display = 'grid';
+        }
+    }
+}
+
+const switchShows = (e) => {
+    console.log(e.target)
+    if(e.target.getAttribute('id') == 'pop' || e.target.getAttribute('id') == 'top') {
+        if(e.target.getAttribute('id') == 'pop') {
+            e.target.classList.add('active');
+            document.querySelector('#top').classList.remove('active');
+            document.querySelector('#popular-shows').style.display = 'grid';
+            document.querySelector('#top-rated-shows').style.display = 'none';
+        } else {
+            e.target.classList.add('active');
+            document.querySelector('#pop').classList.remove('active');
+            document.querySelector('#popular-shows').style.display = 'none';
+            document.querySelector('#top-rated-shows').style.display = 'grid';
+        }
+    }
+}
+
 // Function to initialize the page
 const init = () => { 
     addEventListener('DOMContentLoaded', initSwiper);
     switch (state.currentPage) {
         case '/':
-        case '/index.html':
+            case '/index.html':
+            document.querySelector('.header-container').addEventListener('click', switchMovies);
+            document.getElementById('popular').classList.add('active')
             swipeMovies();
             getPopularMovies();
+            getTopRatedMovies();
             break;
             case '/shows.html':
+            document.querySelector('.shows-header-container').addEventListener('click', switchShows);
+            document.getElementById('pop').classList.add('active')
             swipeShows();
             getPopularTVShows();
+            getTopRatedShows();
             break;
         case '/movie-details.html':
             const movieID = new URLSearchParams(window.location.search).get('id');
