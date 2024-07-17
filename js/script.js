@@ -1,5 +1,16 @@
 const state = {
     currentPage: window.location.pathname,
+    searchQuery: {
+        term: '',
+        type: '',
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+    },
+    api: {
+        key: '1ba70249e113b69ca503011300acd9cb',
+        url: 'https://api.themoviedb.org/3',
+    }
 }
 
 // Function to highlight active link
@@ -12,10 +23,8 @@ const highlightActiveLink = () => {
     });
 }
 
-
-
 const fetchAPIData = async(url) => {
-    const API_KEY = '1ba70249e113b69ca503011300acd9cb';
+    const API_KEY = state.api.key;
     showSpinner();
     const response = await fetch(`${url}?api_key=${API_KEY}`);
     const data = await response.json();
@@ -23,10 +32,22 @@ const fetchAPIData = async(url) => {
     return data;
 }
 
+const searchAPIData = async() => {
+    const API_KEY = state.api.key;
+    const { term, type, page } = state.searchQuery;
+    showSpinner();
+    const response = await fetch(`${state.api.url}/search/${type}?api_key=${API_KEY}&query=${term}&page=${page}`);
+    const data = await response.json();
+    hideSpinner();
+    return data;
+}
+
 const getMovieDetails = async(id) => {
     const movie = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}`);
+    const { cast } = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}/credits`);
     const movieDetailsContainer = document.querySelector('#movie-details');
-
+    console.log(cast.known_for_department === 'Acting');
+    cast.length = 15;
     displayOverlay('movie', movie.backdrop_path);
 
     const movieDetails = document.createElement('div');
@@ -34,7 +55,11 @@ const getMovieDetails = async(id) => {
         <div class="details-top">
             <div>
                 <img
-                src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                src=${
+                    movie.poster_path !== null
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : '/images/no-image.jpg'
+                }
                 class="card-img-top"
                 alt="Movie Title"
                 />
@@ -59,6 +84,8 @@ const getMovieDetails = async(id) => {
             </div>
             </div>
             <div class="details-bottom">
+            <div class="list-group">
+            </div>
             <h2>Movie Info</h2>
             <ul>
                 <li><span class="text-secondary">Budget:</span> $${addComas(movie.budget)}</li>
@@ -75,6 +102,28 @@ const getMovieDetails = async(id) => {
         </div>
     `;
     movieDetailsContainer.appendChild(movieDetails);
+
+    const castContainer = document.querySelector('#cast');
+    cast.forEach(actor => {
+        const actorCard = document.createElement('div');
+        actorCard.classList.add('card');
+        actorCard.innerHTML = `
+        <img
+            src=${
+                actor.profile_path !== null
+                ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
+                : '/images/no-image.jpg'
+            }
+            class="card-img-top"
+            alt="Actor Name"
+        />
+        <div class="card-body">
+            <h5 class="card-title">${actor.name}</h5>
+            <p class="card-text">${actor.character}</p>
+        </div>
+        `;
+        castContainer.appendChild(actorCard);
+    });
 }
 
 const getShowdetails = async(id) => {
@@ -88,7 +137,11 @@ const getShowdetails = async(id) => {
         <div class="details-top">
           <div>
             <img
-              src="https://image.tmdb.org/t/p/w500${show.poster_path}"
+              src=${
+                show.poster_path !== null
+                ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                : '/images/no-image.jpg'
+            }
               class="card-img-top"
               alt="Show Name"
             />
@@ -143,7 +196,11 @@ const getPopularTVShows = async() => {
         <div class="card">
         <a href="tv-details.html?id=${show.id}">
             <img
-                src="https://image.tmdb.org/t/p/w500${show.poster_path}"
+                src=${
+                    show.poster_path !== null
+                    ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                    : '/images/no-image.jpg'
+                }
                 class="card-img-top"
                 alt="Show Title"
             />
@@ -169,7 +226,11 @@ const getPopularMovies = async() => {
         <div class="card">
             <a href="movie-details.html?id=${movie.id}">
                 <img
-                src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                src=${
+                    movie.poster_path !== null
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : '/images/no-image.jpg'
+                }
                 class="card-img-top"
                 alt="Movie Title"
             />
@@ -196,7 +257,11 @@ const getTopRatedMovies = async() => {
         <div class="card">
             <a href="movie-details.html?id=${movie.id}">
                 <img
-                src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                src=${
+                    movie.poster_path !== null
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : '/images/no-image.jpg'
+                }
                 class="card-img-top"
                 alt="Movie Title"
             />
@@ -223,7 +288,11 @@ const getTopRatedShows = async () => {
         <div class="card">
         <a href="tv-details.html?id=${show.id}">
             <img
-                src="https://image.tmdb.org/t/p/w500${show.poster_path}"
+                src=${
+                    show.poster_path !== null
+                    ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                    : '/images/no-image.jpg'
+                }
                 class="card-img-top"
                 alt="Show Title"
             />
@@ -240,6 +309,102 @@ const getTopRatedShows = async () => {
     });
 }
 
+const search = async() => {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    state.searchQuery.type = urlParams.get('type');
+    state.searchQuery.term = urlParams.get('search-term');
+
+    if(state.searchQuery.term !== null && state.searchQuery.term !== '') {
+        const {results, total_pages, page, total_results} = await searchAPIData()
+        
+        state.searchQuery.page = page;
+        state.searchQuery.totalPages = total_pages;
+        state.searchQuery.totalResults = total_results;
+
+        if(results.length === 0){
+            showAlert('No results found');
+            return;
+        }
+
+        displaySearchResults(results, total_pages, page);
+
+        document.querySelector('#search-term').value = '';
+    } else {
+        showAlert('Please enter a search term');
+    }
+}
+
+const displaySearchResults = (results, totalPages, page) => {
+    const resultsContainer = document.querySelector('#search-results');
+    resultsContainer.innerHTML = '';
+    document.querySelector('#pagination').innerHTML = '';
+    document.querySelector('#search-results-heading').innerHTML = '';
+    results.forEach(result => {
+        const resultCard = document.createElement('div');
+        resultCard.innerHTML = `
+        <div class="card">
+            <a href="${state.searchQuery.type}-details.html?id=${result.id}">
+                <img
+                src= ${
+                    result.poster_path !== null
+                    ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
+                    : '/images/no-image.jpg'
+                }
+                class="card-img-top"
+                alt="${state.searchQuery.type === 'movie'? result.title : result.name} Title"
+            />
+            </a>
+            <div class="card-body">
+                <h5 class="card-title">${state.searchQuery.type === 'movie'? result.title : result.name}</h5>
+                <p class="card-text">
+                <small class="text-muted">Release: ${state.searchQuery.type === 'movie'? result.release_date : result.first_air_date}</small>
+                </p>
+            </div>
+        </div>
+        `;
+        resultsContainer.appendChild(resultCard);
+    });
+
+    document.querySelector('#search-results-heading').innerHTML = `
+    <h2>${results.length} of ${state.searchQuery.totalResults} results for "${state.searchQuery.term}"</h2>
+    `
+
+    displayPagination(totalPages, page);
+}
+
+const displayPagination = (totalPages, currentPage) => {
+    const div = document.createElement('div');
+    div.classList.add('pagination');
+    div.innerHTML = `
+        <button class="btn btn-primary" id="prev">Prev</button>
+        <button class="btn btn-primary" id="next">Next</button>
+        <div class="page-counter">Page ${currentPage} of ${totalPages}</div>
+    `;
+
+    document.querySelector('#pagination').appendChild(div);
+
+    if(currentPage === 1) {
+        document.getElementById('prev').disabled = true;
+    }
+    if(currentPage === totalPages) {
+        document.getElementById('next').disabled = true;
+    }
+
+    document.getElementById('prev').addEventListener('click', async() => {
+        state.searchQuery.page--;
+        const {results, total_pages, page} = await searchAPIData();
+        displaySearchResults(results, total_pages, page);
+    });
+
+    document.getElementById('next').addEventListener('click', async() => {
+        state.searchQuery.page++;
+        const {results, total_pages, page} = await searchAPIData();
+        displaySearchResults(results, total_pages, page);
+    });
+}
+
+
 const swipeMovies = async() => {
     const {results} = await fetchAPIData('https://api.themoviedb.org/3/movie/now_playing');     
     
@@ -250,7 +415,11 @@ const swipeMovies = async() => {
         div.classList.add('swiper-slide');
         div.innerHTML = `
         <a href="movie-details.html?id=${movie.id}">
-            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt=${movie.title} />
+            <img src=${
+                movie.poster_path !== null
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : '/images/no-image.jpg'
+            } alt=${movie.title} />
         </a>
         <h4 class="swiper-rating">
             <i class="fas fa-star text-secondary"></i> ${movie.vote_average.toFixed(1)} / 10
@@ -269,8 +438,12 @@ const swipeShows = async() => {
         const div = document.createElement('div');
         div.classList.add('swiper-slide');
         div.innerHTML = `
-        <a href="movie-details.html?id=${movie.id}">
-            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt=${movie.title} />
+        <a href="tv-details.html?id=${movie.id}">
+            <img src=${
+                movie.poster_path !== null
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : '/images/no-image.jpg'
+            } alt=${movie.title} />
         </a>
         <h4 class="swiper-rating">
             <i class="fas fa-star text-secondary"></i> ${movie.vote_average.toFixed(1)} / 10
@@ -341,6 +514,17 @@ const addComas = (number) => {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+const showAlert = (message, type = 'alert-error') => {
+    const alert = document.createElement('div');
+    alert.classList.add('alert', type);
+    alert.appendChild(document.createTextNode(message));
+    document.querySelector('#alert').appendChild(alert);
+
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
 const switchMovies = (e) => {
     console.log(e.target);
     if(e.target.getAttribute('id') == 'popular' || e.target.getAttribute('id') == 'top-rated') {
@@ -403,7 +587,7 @@ const init = () => {
             getShowdetails(showID);
             break;
         case '/search.html':
-            console.log('Search page');
+            search();
             break;
     }
     highlightActiveLink();

@@ -132,6 +132,12 @@ ul {
   grid-gap: 20px;
 }
 
+.grid-actors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 20px;
+}
+
 /* Card */
 .card {
   background: #04376b;
@@ -340,7 +346,6 @@ section h2 {
 
 /* Alert */
 .alert {
-  background: red;
   padding: 10px 20px;
   margin-bottom: 20px;
   border-radius: 5px;
