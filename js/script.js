@@ -606,7 +606,8 @@ const init = () => {
             getTopRatedMovies();
             break;
             case '/shows.html':
-                document.querySelector('#top-rated-shows').style.display = 'none';
+            case '/shows':
+            document.querySelector('#top-rated-shows').style.display = 'none';
             document.querySelector('.shows-header-container').addEventListener('click', switchShows);
             document.getElementById('pop').classList.add('active')
             swipeShows();
