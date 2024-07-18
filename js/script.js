@@ -44,9 +44,12 @@ const searchAPIData = async() => {
 
 const getMovieDetails = async(id) => {
     const movie = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}`);
-    const { cast } = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}/credits`);
+    const { cast, crew } = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}/credits`);
+    const director = crew.find(member => member.job === 'Director');
+    console.log(director.name);
+    const writers = crew.filter(member => member.job === 'Screenplay');
+    console.log(writers);
     const movieDetailsContainer = document.querySelector('#movie-details');
-    console.log(cast.known_for_department === 'Acting');
     cast.length = 15;
     displayOverlay('movie', movie.backdrop_path);
 
@@ -55,10 +58,9 @@ const getMovieDetails = async(id) => {
         <div class="details-top">
             <div>
                 <img
-                src=${
-                    movie.poster_path !== null
-                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                    : '/images/no-image.jpg'
+                src=${movie.poster_path !== null
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : '/images/no-image.jpg'
                 }
                 class="card-img-top"
                 alt="Movie Title"
@@ -88,6 +90,10 @@ const getMovieDetails = async(id) => {
             </div>
             <h2>Movie Info</h2>
             <ul>
+                <li><span class="text-secondary">Director:</span> ${director.name}</li>
+                <li><span class="text-secondary">Writers:</span> ${
+                    writers.map(writer => writer.name).join(', ')
+                }</li>
                 <li><span class="text-secondary">Budget:</span> $${addComas(movie.budget)}</li>
                 <li><span class="text-secondary">Revenue:</span> $${addComas(movie.revenue)}</li>
                 <li><span class="text-secondary">Runtime:</span> ${movie.runtime} minutes</li>
@@ -128,6 +134,10 @@ const getMovieDetails = async(id) => {
 
 const getShowdetails = async(id) => {
     const show = await fetchAPIData(`https://api.themoviedb.org/3/tv/${id}`);
+    const { cast } = await fetchAPIData(`https://api.themoviedb.org/3/tv/${id}/credits`);
+    console.log(cast);
+    cast.length = 10;
+    
     const showDetailsContainer = document.querySelector('#show-details');
 
     displayOverlay('show', show.backdrop_path);
@@ -185,6 +195,28 @@ const getShowdetails = async(id) => {
         </div>
     `;
     showDetailsContainer.appendChild(showDetails);
+
+    const castContainer = document.querySelector('#cast');
+    cast.forEach(actor => {
+        const actorCard = document.createElement('div');
+        actorCard.classList.add('card');
+        actorCard.innerHTML = `
+        <img
+            src=${
+                actor.profile_path !== null
+                ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
+                : '/images/no-image.jpg'
+            }
+            class="card-img-top"
+            alt="Actor Name"
+        />
+        <div class="card-body">
+            <h5 class="card-title">${actor.name}</h5>
+            <p class="card-text">${actor.character}</p>
+        </div>
+        `;
+        castContainer.appendChild(actorCard);
+    });
 }
 
 const getPopularTVShows = async() => {
@@ -561,10 +593,12 @@ const switchShows = (e) => {
 
 // Function to initialize the page
 const init = () => { 
+    highlightActiveLink();
     addEventListener('DOMContentLoaded', initSwiper);
     switch (state.currentPage) {
         case '/':
             case '/index.html':
+            document.querySelector('#top-rated-movies').style.display = 'none';
             document.querySelector('.header-container').addEventListener('click', switchMovies);
             document.getElementById('popular').classList.add('active')
             swipeMovies();
@@ -572,6 +606,7 @@ const init = () => {
             getTopRatedMovies();
             break;
             case '/shows.html':
+                document.querySelector('#top-rated-shows').style.display = 'none';
             document.querySelector('.shows-header-container').addEventListener('click', switchShows);
             document.getElementById('pop').classList.add('active')
             swipeShows();
@@ -590,7 +625,6 @@ const init = () => {
             search();
             break;
     }
-    highlightActiveLink();
 }
 
 init();

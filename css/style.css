@@ -7,8 +7,10 @@
 }
 
 :root {
-  --color-primary: #020d18;
-  --color-secondary: #f1c40f;
+  --color-primary2: #020d18;
+  --color-primary: #000000;
+  --color-secondary2: #f1c40f;
+  --color-secondary: #E50914  ;
 }
 
 body {
@@ -139,8 +141,13 @@ ul {
 }
 
 /* Card */
-.card {
+.card2 {
   background: #04376b;
+  padding: 5px;
+}
+
+.card {
+  background: #221F1F  ;
   padding: 5px;
 }
 
@@ -153,15 +160,21 @@ ul {
   font-size: 20px;
 }
 
-.card:hover {
+.card2:hover {
   transform: scale(1.05);
   transition: all 0.5s ease-in-out;
   background: #0a4b8f;
 }
 
+.card:hover {
+  transform: scale(1.05);
+  transition: all 0.5s ease-in-out;
+  background: #B81D24 ;
+}
+
 /* Footer */
 .main-footer {
-  background: #020d18;
+  background: #221F1F ;
   padding: 20px 0;
   margin-top: 20px;
 }
@@ -197,7 +210,7 @@ ul {
 
 section.now-playing {
   padding: 60px;
-  background: url(../images/showcase-bg.jpg) no-repeat center center/cover;
+  background: url(../images/wp10615910-movie-collection-wallpapers2.jpg) no-repeat center center/cover;
 }
 
 section h2 {
@@ -254,9 +267,6 @@ section h2 {
 
 .details-top .btn {
   margin-top: 20px;
-}
-
-.details-bottom {
 }
 
 .details-bottom li {
