@@ -45,8 +45,8 @@ const searchAPIData = async() => {
 const getMovieDetails = async(id) => {
     const movie = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}`);
     const { cast, crew } = await fetchAPIData(`https://api.themoviedb.org/3/movie/${id}/credits`);
-    const director = crew.find(member => member.job === 'Director');
-    console.log(director.name);
+    const directors = crew.filter(member => member.job === 'Director');
+    console.log(directors);
     const writers = crew.filter(member => member.job === 'Screenplay');
     console.log(writers);
     const movieDetailsContainer = document.querySelector('#movie-details');
@@ -90,10 +90,16 @@ const getMovieDetails = async(id) => {
             </div>
             <h2>Movie Info</h2>
             <ul>
-                <li><span class="text-secondary">Director:</span> ${director.name}</li>
-                <li><span class="text-secondary">Writers:</span> ${
-                    writers.map(writer => writer.name).join(', ')
-                }</li>
+                ${
+                    directors.length > 0 ?
+                    `<li><span class="text-secondary">Director:</span> ${directors.map(director => director.name).join(', ')}</li>`
+                    : ''
+                }
+                ${
+                    writers.length > 0 ?
+                    `<li><span class="text-secondary">Writer:</span> ${writers.map(writer => writer.name).join(', ')}</li>`
+                    : ''
+                }
                 <li><span class="text-secondary">Budget:</span> $${addComas(movie.budget)}</li>
                 <li><span class="text-secondary">Revenue:</span> $${addComas(movie.revenue)}</li>
                 <li><span class="text-secondary">Runtime:</span> ${movie.runtime} minutes</li>
@@ -134,8 +140,7 @@ const getMovieDetails = async(id) => {
 
 const getShowdetails = async(id) => {
     const show = await fetchAPIData(`https://api.themoviedb.org/3/tv/${id}`);
-    const { cast } = await fetchAPIData(`https://api.themoviedb.org/3/tv/${id}/credits`);
-    console.log(cast);
+    const { cast, crew } = await fetchAPIData(`https://api.themoviedb.org/3/tv/${id}/credits`);
     cast.length = 10;
     
     const showDetailsContainer = document.querySelector('#show-details');
